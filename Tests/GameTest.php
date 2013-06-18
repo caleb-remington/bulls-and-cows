@@ -4,43 +4,49 @@ namespace BullsAndCows\Tests;
 
 use PHPUnit_Framework_TestCase;
 use BullsAndCows\Game;
-use BullsAndCows\Exceptions\ExceptionGameInProgress;
+use BullsAndCows\Guess;
+use BullsAndCows\Exceptions\GameIsAlreadyOverException;
 
 class GameTest extends PHPUnit_Framework_TestCase 
 {
     private $game;
-
-    protected function setUp() 
+     
+    protected function setUp()
     {
         $this->game = new Game();
+        $this->game->setAnswer('1234');
     }
 
-    protected function tearDown()
+    public function testGuessCorrectAnswer()
     {
-        $this->game = null;
+        $successful = $this->game->addGuess('1234');
+        $this->assertTrue($successful);
     }
 
-    public function testStartingGame()
+    public function testGuessIncorrectAnswer()
     {
-        $game = new Game();
+        $successful = $this->game->addGuess('1432');
+        $this->assertFalse($successful);
     }
 
+    public function testCountNumberOfGuesses()
+    {
+        $this->game->addGuess('3214');
+        $this->game->addGuess('1343');
+        $this->game->addGuess('9898');
+        
+        $counter = $this->game->countGuesses('3');
+        $this->assertTrue($counter);
+    }
+    
     /**
-     * A new game is active.
+     * @expectedException \BullsAndCows\Exceptions\GameIsAlreadyOverException 
+     *
      */
-    public function testNewGameIsActive()
+    public function testNoGuessesAfterGameOver() 
     {
-        $this->assertTrue( $this->game->isActive() );
+        $this->game->addGuess('1234');
+        $this->game->addGuess('5678');
     }
-
-    /**
-     * A new game has no winner
-     */
-    public function testNewGameNoWinner()
-    {
-        $this->assertException( ExceptionGameInProgress );
-        $winner = $this->game->isWinner();
-    }
-
 }
 
