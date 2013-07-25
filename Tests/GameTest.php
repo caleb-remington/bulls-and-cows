@@ -5,48 +5,66 @@ namespace BullsAndCows\Tests;
 use PHPUnit_Framework_TestCase;
 use BullsAndCows\Game;
 use BullsAndCows\Guess;
+use BullsAndCows\Matcher;
+use BullsAndCows\Match;
 use BullsAndCows\Exceptions\GameIsAlreadyOverException;
 
 class GameTest extends PHPUnit_Framework_TestCase 
 {
     private $game;
      
-    protected function setUp()
+    protected function newGame()
     {
-        $this->game = new Game();
-        $this->game->setAnswer('1234');
+        $this->game = new Game(); 
+        return $this->game;
     }
 
-    public function testGuessCorrectAnswer()
+    public function testCreateFourDigitAnswer()
     {
-        $successful = $this->game->addGuess('1234');
-        $this->assertTrue($successful);
-    }
-
-    public function testGuessIncorrectAnswer()
-    {
-        $successful = $this->game->addGuess('1432');
-        $this->assertFalse($successful);
-    }
-
-    public function testCountNumberOfGuesses()
-    {
-        $this->game->addGuess('3214');
-        $this->game->addGuess('1343');
-        $this->game->addGuess('9898');
-        
-        $counter = $this->game->countGuesses('3');
-        $this->assertTrue($counter);
+        $game = $this->newGame();
+        $game->createAnswer();
+        $this->assertRegExp('/^\d{4}$/', $game->getAnswer());
     }
     
-    /**
-     * @expectedException \BullsAndCows\Exceptions\GameIsAlreadyOverException 
-     *
-     */
-    public function testNoGuessesAfterGameOver() 
+    public function testMatchGuessReturnsMatchObject()
     {
-        $this->game->addGuess('1234');
-        $this->game->addGuess('5678');
+        $game = $this->newGame();
+        $answer = $game->createAnswer();
+        $guess = new Guess('1234');
+        $match = $game->matchGuess($guess);
+        $this->assertObjectHasAttribute('cows', $match);
+        $this->assertObjectHasAttribute('bulls', $match);
+    }
+
+    public function testGameOverIsFalse()
+    {
+        $game = $this->newGame();
+        $this->assertFalse($game->isGameOver());
+    }
+
+    public function testGameOverIsTrue()
+    {
+        $game = $this->newGame();
+        $game->setGameOverToTrue();
+        $this->assertTrue($game->isGameOver());
+    }
+
+    public function testGuessGetsAddedToGuessesVariable()
+    {
+        $game = $this->newGame();
+        $guess = new Guess('1234');
+        $game->incrementGuesses($guess);
+        $this->assertArrayHasKey('0', $game->getGuesses());
+    }
+
+    public function testGuessGetsCountedProperly()
+    {
+        $game = $this->newGame();
+        $guess_1 = new Guess('1234');
+        $guess_2 = new Guess('4321');
+        $game->incrementGuesses($guess_1);
+        $game->incrementGuesses($guess_2);
+        $this->assertEquals($game->countGuesses(), 2);
     }
 }
 

@@ -44,20 +44,18 @@ class Matcher
     {
         return $this->guess_b;
     }  
-
+    
     /**
      * Check if guess A matches guess B.
      */
-    public function match()
+    public function execute()
     {
-        $guess_a = $this->guess_a;
-        $guess_b = $this->guess_b;
+        $guess_a = $this->guess_a->getValue();
+        $guess_b = $this->guess_b->getValue();
+
+        $match = new Match();
         
-        $guess_a_value = $guess_a->getValue();
-        $guess_b_value = $guess_b->getValue();
-
-        $match = $guess_a_value == $guess_b_value;
-
+        $match->increment($guess_a, $guess_b);
         return $match;
     }
     

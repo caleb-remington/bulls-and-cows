@@ -27,6 +27,16 @@ class Guess
     }
 
     /**
+     * check valid guess
+     *
+     * @return self
+     */
+    public function isValid()
+    {
+        return (1 === preg_match('/^\d{4}$/', $this->value));
+    }
+
+    /**
      * Get value
      *
      * @return string 

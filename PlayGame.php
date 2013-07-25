@@ -6,52 +6,47 @@ use BullsAndCows\Game;
 use BullsAndCows\Guess;
 use BullsAndCows\Matcher;
 
-echo "Are you sure you want to start playing Bulls and Cows?  Type 'yes' to continue: ";
-$question = fgets(STDIN);
-$yes = preg_match('/^(?i)yes/', trim($question));
-if(!$yes){
-    echo "ABORTING!\n";
-        exit;
-}
-echo "\n";
-echo "Great! Try to figure out the four digit number that I set...\n";
+echo "Try to figure out the four digit number that I set...\n";
 
 $game = new Game();
-$set_answer = $game->setAnswer('1234');
+$answer = $game->createAnswer();
 
-for ($guesses = 1; ; $guesses++){
-    while(true){
-        echo "Guess # $guesses \n";
-        $new_guess = rtrim(fgets(STDIN));
-        $guess = new Guess($new_guess);
-        break;
+while($game->isGameOver() === false)
+{
+    echo "Guess: ";
+    $new_guess = trim(fgets(STDIN));
+    $guess = new Guess($new_guess);
+    
+    if(!$guess->isValid()){
+        continue;
     }
-    $matcher = new Matcher();
-    $guess_a = $matcher->setGuessA($guess);
-    $guess = $guess_a->getGuessA()->getValue();
-    $answer = $set_answer->getAnswer();
-    if ($guess == $answer){
-        if ($guesses > 1){
-            echo "Winner in $guesses tries. \n";
-            exit;
-        } else if ($guesses == 1){
-            echo "Winner first try! \n";
-            exit;
+
+    $game->incrementGuesses($guess);
+    $match = $game->matchGuess($guess);
+    if($match->isCorrect()) 
+    {
+        $game->setGameOverToTrue();
+        $guess_count = $game->countGuesses();
+        if( $guess_count == 1 )
+        {
+            echo "Winner first try!\n";
+        }
+        else
+        {
+            echo "Winner in $guess_count tries.\n";
         }
     }
-    else {
-       $bulls = 0;
-       $cows = 0;
-       foreach(range(0, 3) as $i){
-           if($guess[$i] == $answer[$i])
-               $bulls++;
-           else if(strpos($answer, $guess[$i]) !== FALSE)
-               $cows++;
+    else
+    {
+       $bulls = $match->getBulls();
+       $cows = $match->getCows();
+       echo "$bulls Bulls, $cows Cows \n";
+       echo "Try Again..." . "\n";
+       foreach($game->getGuesses() as $key => $guess){
+           echo $key + 1 . ") " .  $guess->getValue() . "\n";
        }
-       echo "$bulls Bulls, $cows Cows \n\n";
-
-   }
+       echo "\n";
+    }
 }
-?>
 
-
+echo "Game complete.\n";
